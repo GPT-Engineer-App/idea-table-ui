@@ -46,6 +46,7 @@ const fromSupabase = async (query) => {
 | user_id    | uuid        | string | false    |
 | title      | text        | string | true     |
 | description| text        | string | false    |
+| category   | text        | string | false    |
 | created_at | timestamptz | string | false    |
 
 ### users
@@ -136,11 +137,11 @@ export const useDeleteComment = () => {
 // Hooks for ideas
 export const useIdeas = () => useQuery({
     queryKey: ['ideas'],
-    queryFn: () => fromSupabase(supabase.from('ideas').select('*')),
+    queryFn: () => fromSupabase(supabase.from('ideas').select('id, user_id, title, description, category, created_at')),
 });
 export const useIdea = (id) => useQuery({
     queryKey: ['ideas', id],
-    queryFn: () => fromSupabase(supabase.from('ideas').select('*').eq('id', id).single()),
+    queryFn: () => fromSupabase(supabase.from('ideas').select('id, user_id, title, description, category, created_at').eq('id', id).single()),
 });
 export const useAddIdea = () => {
     const queryClient = useQueryClient();
