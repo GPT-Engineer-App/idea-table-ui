@@ -2,23 +2,49 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useIdeas, useAddIdea, useUpdateIdea, useDeleteIdea } from "@/integrations/supabase/index.js";
+import { toast } from "sonner";
 
 const Index = () => {
-  const [ideas, setIdeas] = useState([]);
+  const { data: ideas, error, isLoading } = useIdeas();
+  const addIdeaMutation = useAddIdea();
+  const updateIdeaMutation = useUpdateIdea();
+  const deleteIdeaMutation = useDeleteIdea();
+
   const [newIdea, setNewIdea] = useState({ title: "", description: "", category: "" });
 
-  const handleAddIdea = () => {
-    setIdeas([...ideas, { ...newIdea, id: ideas.length + 1 }]);
-    setNewIdea({ title: "", description: "", category: "" });
+  const handleAddIdea = async () => {
+    try {
+      await addIdeaMutation.mutateAsync(newIdea);
+      setNewIdea({ title: "", description: "", category: "" });
+      toast.success("Idea added successfully!");
+    } catch (error) {
+      toast.error("Failed to add idea: " + error.message);
+    }
   };
 
-  const handleEditIdea = (id, field, value) => {
-    setIdeas(ideas.map(idea => idea.id === id ? { ...idea, [field]: value } : idea));
+  const handleEditIdea = async (id, field, value) => {
+    try {
+      const updatedIdea = ideas.find(idea => idea.id === id);
+      updatedIdea[field] = value;
+      await updateIdeaMutation.mutateAsync(updatedIdea);
+      toast.success("Idea updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update idea: " + error.message);
+    }
   };
 
-  const handleDeleteIdea = (id) => {
-    setIdeas(ideas.filter(idea => idea.id !== id));
+  const handleDeleteIdea = async (id) => {
+    try {
+      await deleteIdeaMutation.mutateAsync(id);
+      toast.success("Idea deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete idea: " + error.message);
+    }
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div className="container mx-auto p-4">
